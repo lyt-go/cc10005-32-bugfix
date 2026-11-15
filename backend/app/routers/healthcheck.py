@@ -1,4 +1,8 @@
-"""采集器健康接口：维护健康报告，覆盖生成报告、确认报告、归档报告等动作。"""
+"""采集器健康接口：维护健康报告，覆盖生成报告、确认报告、归档报告等动作。
+
+确认环节强制校验采样窗口、CPU 峰值、错误队列长度三项指标；已确认报告窗口过期后
+会在读取/动作时惰性退回「待确认」，限速恢复只能引用当前窗口已确认的报告。
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -12,14 +16,14 @@ router = APIRouter(prefix="/api/healthcheck", tags=["采集器健康"])
 
 service = HealthcheckService()
 
-LIST_FIELDS = ["报告编号", "采集器名称", "CPU占用率", "内存占用MB", "网络IO速率", "活跃连接数", "错误队列长度", "检查时间戳"]
-STATUSES = ["草稿", "报告中", "已确认", "已归档"]
+LIST_FIELDS = ["报告编号", "采集器名称", "CPU占用率", "CPU峰值", "内存占用MB", "网络IO速率", "活跃连接数", "错误队列长度", "采样窗口开始", "采样窗口结束", "检查时间戳"]
+STATUSES = ["草稿", "报告中", "待确认", "已确认", "已归档"]
 
 
 @router.get("", response_model=PageResult[dict])
 def list_entries(
     keyword: str | None = Query(default=None, description="按报告编号检索"),
-    status: str | None = Query(default=None, description="草稿、报告中、已确认、已归档"),
+    status: str | None = Query(default=None, description="草稿、报告中、待确认、已确认、已归档"),
     page: int = 1,
     size: int = 20,
 ) -> PageResult[dict]:
@@ -28,6 +32,14 @@ def list_entries(
         raise HTTPException(status_code=400, detail="每页最多 200 条，请缩小分页范围")
     items, total = service.list_entries(keyword=keyword, status=status, page=page, size=size)
     return PageResult(items=items, total=total, page=page, size=size)
+
+
+# 具体路径排在 /{entry_id} 之前，避免被当成报告 id 捕获。
+@router.get("/export")
+def export_entries() -> dict[str, Any]:
+    """导出采集器健康清单：返回当前过滤条件下的全量数据。"""
+    items, total = service.list_entries(page=1, size=10000)
+    return {"module": "healthcheck", "total": total, "items": items}
 
 
 @router.get("/{entry_id}", response_model=dict)
@@ -56,10 +68,3 @@ def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     if entry is None:
         return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=message, entry=entry)
-
-
-@router.get("/export")
-def export_entries() -> dict[str, Any]:
-    """导出采集器健康清单：返回当前过滤条件下的全量数据。"""
-    items, total = service.list_entries(page=1, size=10000)
-    return {"module": "healthcheck", "total": total, "items": items}

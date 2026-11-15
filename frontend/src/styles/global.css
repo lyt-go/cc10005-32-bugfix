@@ -31,5 +31,24 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 .btn.ghost { background: transparent; }
 .link { border: none; background: none; color: var(--brand); cursor: pointer; padding: 0; }
-.page-foot { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--muted); }
-.error-text { color: #b42318; }
+.page-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.error-text { color: #b42318; font-weight: 600; }
+.info-text { color: #067647; font-weight: 600; }
+.muted { color: var(--muted); font-size: 12px; }
+
+/* 状态标签：不同状态不同底色，避免导航页与详情页结果错位时难以辨认 */
+.status-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
+.status-草稿, .status-已关闭, .status-已归档 { background: #e5e7eb; color: #475467; }
+.status-规则评审中, .status-报告中 { background: #fef0c7; color: #b54708; }
+.status-待确认 { background: #fee4e2; color: #b42318; }
+.status-已启用, .status-已确认 { background: #d1fadf; color: #067647; }
+
+/* 行内表单与侧栏面板（健康报告选择、降档参数、恢复凭证） */
+.inline-field { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; font-size: 12px; }
+.inline-field span { color: var(--muted); }
+.inline-field select, .inline-field input { min-width: 180px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; }
+.inline-fields { display: flex; gap: 8px; flex-wrap: wrap; }
+.side-panel { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 16px; }
+.side-panel h3 { margin: 0 0 8px; font-size: 14px; }
+.data-table.compact th, .data-table.compact td { padding: 6px 8px; font-size: 12px; }
+.nav-item.active { background: #1f6feb; color: #fff; }
